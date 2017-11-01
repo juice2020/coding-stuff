@@ -37,12 +37,12 @@ void remake_game(game ** _cur_game_ptr,int new_rows,int new_cols)
 	(*_cur_game_ptr)->cells = malloc(new_rows*new_cols*sizeof(cell));
 
 	(**_cur_game_ptr).rows = new_rows;
-  (**_cur_game_ptr).cols = new_cols;
-  (**_cur_game_ptr).score = 0;
+  	(**_cur_game_ptr).cols = new_cols;
+  	(**_cur_game_ptr).score = 0;
 
-  for(i = 0; i < rows * cols; i++){
-    (*_cur_game_ptr)->cells[i] = -1; // clears the board of remake
-  }//YOUR CODE STARTS HERE:  Re-initialize all other variables in game struct
+  	for(int i = 0; i < new_rows * new_cols; i++){
+    	(*_cur_game_ptr)->cells[i] = -1; // clears the board of remake
+  	}//YOUR CODE STARTS HERE:  Re-initialize all other variables in game struct
 
 	return;
 }
