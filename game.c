@@ -83,9 +83,48 @@ int move_w(game * cur_game)
    cell to change value, w is an invalid move and return 0. Otherwise, return 1.
 */
 {
-    int i, j, k;
-
-    return 1;
+    int i,j,k;
+ int rows = cur_game->rows;
+ int cols = cur_game->cols;
+ int flag = 0;
+ for(j = 0; j < cols; j++)
+ {
+	int last_combined_row = -1;
+	for(i = j; i < (rows * cols); i += cols)//loop have
+	{ 
+		if(cur_game->cells[i] != -1)//check if cells are not -1
+		{
+		for(k = j; k <= i; k +=cols)
+		{
+		if((cur_game->cells[k] == -1) &&(cur_game->cells[i]!=-1) && (i!=j))//if the shifted cell is empry and the current cell is not, then exchange values
+		{
+		cur_game->cells[k] = cur_game->cells[i];
+		cur_game->cells[i] = -1;
+		}
+			if(((k-cols) > last_combined_row) && (k - cols) >= 0)
+			{
+			if(cur_game->cells[k-cols] == cur_game->cells[k] && cur_game->cells[k] != -1)
+			{
+			flag = 1;
+			cur_game->cells[k-cols]*= 2;//double the value since it's added
+			cur_game->cells[k] = -1;
+			last_combined_row = k - cols;//Row above targer row
+			cur_game->score =(cur_game->score) + cur_game->cells[k-cols];
+			}
+			}
+			}
+			}
+		}
+		}
+		if(flag == 0)//there are no changes
+		{
+		return 0;
+		}
+		else //there are changes
+		{
+		return 1;
+		}		
+ 			
 };
 
 int move_s(game * cur_game) //slide down
