@@ -272,10 +272,34 @@ int legal_move_check(game * cur_game)
     no legal moves if sliding in any direction will not cause the game to change.
 	Return 1 if there are possible legal moves, 0 if there are none.
  */
-{
-    //YOUR CODE STARTS HERE
+{    int i, j, rows, cols;
+    rows = cur_game->rows;
+    cols = cur_game->cols;
+    int *cells = cur_game->cells;//YOUR CODE STARTS HERE
 
-    return 1;
+    for (i = 0; i < rows; i++) {
+      for (j = 0; i < cols; j++) {
+            if(cells[i*cols + j] == -1) //there are still empty cells
+            {
+              return 1;
+            }
+            if(j + 1 < cols)
+            {
+              if(cells[i * cols + j + 1] == cells[i * cols + j]) //if there are same value in the columns there are more legal moves
+              {
+                return 1;
+              }
+            }
+            if(i + 1 < rows)
+            {
+              if(cells[(i+1) * cols + j] == cells[i * cols + j]) //if there are values in the row, ther are more legal moves
+              {
+                return 1;
+              }
+            }
+       }
+	}
+  return 0;
 }
 
 
