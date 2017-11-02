@@ -83,7 +83,7 @@ int move_w(game * cur_game)
    cell to change value, w is an invalid move and return 0. Otherwise, return 1.
 */
 {
-    int i,j,k;
+ int i,j,k;
  int rows = cur_game->rows;
  int cols = cur_game->cols;
  int flag = 0;
@@ -91,7 +91,7 @@ int move_w(game * cur_game)
  {
 	int last_combined_row = -1;
 	for(i = j; i < (rows * cols); i += cols)//loop have
-	{ 
+	{
 		if(cur_game->cells[i] != -1)//check if cells are not -1
 		{
 		for(k = j; k <= i; k +=cols)
@@ -106,9 +106,9 @@ int move_w(game * cur_game)
 			if(cur_game->cells[k-cols] == cur_game->cells[k] && cur_game->cells[k] != -1)
 			{
 			flag = 1;
-			cur_game->cells[k-cols]*= 2;//double the value since it's added
+			cur_game->cells[k-cols]*= 2;
 			cur_game->cells[k] = -1;
-			last_combined_row = k - cols;//Row above targer row
+			last_combined_row = k - cols;//Row above target row
 			cur_game->score =(cur_game->score) + cur_game->cells[k-cols];
 			}
 			}
@@ -116,36 +116,156 @@ int move_w(game * cur_game)
 			}
 		}
 		}
-		if(flag == 0)//there are no changes
+		if(flag == 1)//there are changes in values
+		{
+		return 1;
+		}
+		else //there are no changes
 		{
 		return 0;
 		}
-		else //there are changes
-		{
-		return 1;
-		}		
- 			
+
 };
 
 int move_s(game * cur_game) //slide down
 {
-    //YOUR CODE STARTS HERE
-
-    return 1;
+  int i,j,k;
+  int rows = cur_game->rows;
+  int cols = cur_game->cols;
+  int flag = 0;
+  for(j = 0; j < cols; j++)
+  {
+ 	int last_combined_row = rows * cols;
+ 	for(i = (rows - 1) * cols + j; i >= 0; i -= cols)//loop i has loaction of current cell and targer combined cell of k
+	{
+		if(cur_game->cells[i] != -1)//checks if cell is not empty
+		{
+			for(k = (rows - 1) * cols + j; k >= i; k -=cols)
+			{
+			if((cur_game->cells[k] == -1) &&(cur_game->cells[i]!=-1)&&(i!=k))//if target cell is empty and the would be combined cells dont have the same value
+			{
+			cur_game->cells[k] = cur_game->cells[i];
+			cur_game->cells[i] = -1;
+			flag = 1;
+			}
+			if(((cols + k) < last_combined_row)&&(cols+k) <= (rows * cols))
+			{
+				if(cur_game->cells[cols + k] == cur_game->cells[k] && cur_game->cells[k]!= -1)
+				//if the current cell before target combined cell is the same value, then combine cells, change occurs
+				{
+				cur_game->cells[cols+k] *= 2; //combine scores
+				cur_game->cells[k] = -1;
+				last_combined_row = cols + k;
+				cur_game->score = (cur_game->score)+ cur_game->cells[cols + k];
+				flag = 1;
+						}
+					}
+				}
+			}
+		}
+	}
+		if(flag == 1)
+		{
+		return 1;
+		}
+		else
+		{
+		return 0;
+		}
 };
 
 int move_a(game * cur_game) //slide left
 {
-    //YOUR CODE STARTS HERE
-
-    return 1;
+ int i,j,k;
+ int cols = cur_game->cols;
+ int rows = cur_game->rows;
+ int flag = 0;
+ for(j = 0; j < rows; j++)
+ {
+  int last_combined_col = -1;
+  for(i =(j-1) * cols; i <= j*cols - 1;i++)
+  //i location of current cell with j being the targeted combined song
+  {
+	if(cur_game->cells[i] != -1)//if the cell is empty then start check
+	{
+		for(k =(j-1)* cols;k <= i; k++)
+		{
+		if((cur_game->cells[k] ==( -1)) && (i!=k) &&(cur_game->cells[i] !=-1))//if target cell is empty and the would be combined cells dont have the same value
+		{
+		cur_game->cells[k] = cur_game->cells[i];
+		cur_game->cells[i] = -1;
+		flag = 1;
+		}
+			if(((k-1) >last_combined_col) &&((k-1) >= cols * (j - 1)))
+			{
+			if(cur_game->cells[k-1] == cur_game->cells[k] && cur_game->cells[k] !=-1)//if the current cell before target combined cell is the same value, then combine cells, change occurs
+			{
+				cur_game->cells[k-1] *= 2;
+				cur_game->cells[k] = -1;
+				last_combined_col = k - 1;
+				cur_game->score =(cur_game->score) + cur_game->cells[k-1];
+				flag = 1;
+							}
+						}
+					}
+				}
+			}
+		}
+	if(flag == 1)
+	{
+	return 1;
+	}
+	else
+	{
+	return 0;
+	}
 };
 
 int move_d(game * cur_game){ //slide to the right
-    //YOUR CODE STARTS HERE
+ int i,j,k;
+ int rows = cur_game->rows;
+ int cols = cur_game->cols;
+ int flag = 0;
+ for(j = 0; j < rows; j++)
+ {
+	int last_combined_col = rows * cols;
+	for(i = j *cols -1; i >= cols * (j-1); i--)
+	{
+		if(cur_game->cells[i] != -1)
+		{
+			for(k = j*cols - 1; k >=i; k--)
+			{
+			if((cur_game->cells[k] == -1) && (cur_game->cells[i] != -1) && (i != k))//if target cell is empty and the would be combined cells dont have the same value
+			{
+			cur_game->cells[k] = cur_game->cells[i];
+			cur_game->cells[i] = -1;
+			flag = 1;
+			}
 
-    return 1;
+			if(((k+1) < last_combined_col) &&((k + 1) <= j*cols-1))
+			{
+				if(cur_game->cells[k+1] == cur_game->cells[k] && cur_game->cells[k] != -1)//if the current cell before target combined cell is the same value, then combine cells, change occurs
+				{
+				cur_game->cells[k+1] *= 2;
+				cur_game->cells[k] = -1;
+				cur_game->score =(cur_game->score) + cur_game->cells[k+1];
+				flag = 1;
+							}
+						}
+					}
+				}
+			}
+		}
+	if(flag == 1)
+	{
+    	return 1;
+	}
+	else
+	{
+	return 0;
+	}
 };
+
 
 int legal_move_check(game * cur_game)
 /*! Given the current game check if there are any legal moves on the board. There are
