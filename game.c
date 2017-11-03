@@ -32,17 +32,16 @@ void remake_game(game ** _cur_game_ptr,int new_rows,int new_cols)
 */
 {
 	/*Frees dynamically allocated memory used by cells in previous game,
-	 then dynamically allocates memory for cells in new game.  DO NOT MODIFY.*/
-	free((*_cur_game_ptr)->cells);
-	(*_cur_game_ptr)->cells = malloc(new_rows*new_cols*sizeof(cell));
+  then dynamically allocates memory for cells in new game.  DO NOT MODIFY.*/
+  free((*_cur_game_ptr)->cells);
+  (*_cur_game_ptr)->cells = malloc(new_rows*new_cols*sizeof(cell));
+  (**_cur_game_ptr).rows = new_rows;
+  (**_cur_game_ptr).cols = new_cols;
+  (**_cur_game_ptr).score = 0;
 
-	(**_cur_game_ptr).rows = new_rows;
-  	(**_cur_game_ptr).cols = new_cols;
-  	(**_cur_game_ptr).score = 0;
-
-  	for(int i = 0; i < new_rows * new_cols; i++){
-    	(*_cur_game_ptr)->cells[i] = -1; // clears the board of remake
-  	}//YOUR CODE STARTS HERE:  Re-initialize all other variables in game struct
+  for(int i = 0; i <= (new_rows * new_cols - 1); i++){
+    (*_cur_game_ptr)->cells[i] = -1; // clears the board of remake
+  }//YOUR CODE STARTS HERE:  Re-initialize all other variables in game struct
 
 	return;
 }
@@ -75,6 +74,7 @@ cell * get_cell(game * cur_game, int row, int col)
   }
 }
 
+
 int move_w(game * cur_game)
 /*!Slides all of the tiles in cur_game upwards. If a tile matches with the
    one above it, the tiles are merged by adding their values together. When
@@ -83,188 +83,174 @@ int move_w(game * cur_game)
    cell to change value, w is an invalid move and return 0. Otherwise, return 1.
 */
 {
- int i,j,k;
- int rows = cur_game->rows;
- int cols = cur_game->cols;
- int flag = 0;
- for(j = 0; j < cols; j++)
- {
-	int last_combined_row = -1;
-	for(i = j; i < (rows * cols); i += cols)//loop have
-	{
-		if(cur_game->cells[i] != -1)//check if cells are not -1
-		{
-		for(k = j; k <= i; k +=cols)
-		{
-		if((cur_game->cells[k] == -1) &&(cur_game->cells[i]!=-1) && (i!=j))//if the shifted cell is empry and the current cell is not, then exchange values
-		{
-		cur_game->cells[k] = cur_game->cells[i];
-		cur_game->cells[i] = -1;
-    flag = 1;
-		}
-			if(((k-cols) > last_combined_row) && (k - cols) >= 0)
-			{
-			if(cur_game->cells[k-cols] == cur_game->cells[k] && cur_game->cells[k] != -1)
-			{
-			flag = 1;
-			cur_game->cells[k-cols]*= 2;
-			cur_game->cells[k] = -1;
-			last_combined_row = k - cols;//Row above target row
-			cur_game->score =(cur_game->score) + cur_game->cells[k-cols];
-			}
-			}
-			}
-			}
-		}
-		}
-		if(flag == 1)//there are changes in values
-		{
-		return 1;
-		}
-		else //there are no changes
-		{
-		return 0;
-		}
+    //YOUR CODE STARTS HERE
+    int i, j, k;
 
+    int row = cur_game->rows;
+    int col = cur_game->cols;
+
+    int flag = 0;
+
+    for(j=0;j<col;j++){
+      int last_combined_row = -1;
+      for(i=j;i<(row*col);i+=col){ //from the first row to last row
+        if(cur_game->cells[i] != -1){
+          for(k=j;k<=i;k+=col){
+            if((cur_game->cells[k] == -1)&&(cur_game->cells[i]!=-1)&&(i!=j)){
+              flag = 1;
+              cur_game->cells[k] = cur_game->cells[i];
+              cur_game->cells[i] = -1;
+            }
+            if((k-col > last_combined_row) && (k-col)>=0){
+              if(cur_game->cells[k-col] == cur_game->cells[k] && cur_game->cells[k] != -1){
+                flag = 1;
+                cur_game->cells[k-col] *= 2;
+                cur_game->cells[k] = -1;
+                last_combined_row = k-col;
+                cur_game->score = cur_game->score + cur_game->cells[k-col];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (flag==1){
+      return 1;
+    }
+
+    else{
+      return 0;
+    }
 };
 
 int move_s(game * cur_game) //slide down
 {
-  int i,j,k;
-  int rows = cur_game->rows;
-  int cols = cur_game->cols;
-  int flag = 0;
-  for(j = 0; j < cols; j++)
-  {
- 	int last_combined_row = rows * cols;
- 	for(i = (rows - 1) * cols + j; i >= 0; i -= cols)//loop i has loaction of current cell and targer combined cell of k
-	{
-		if(cur_game->cells[i] != -1)//checks if cell is not empty
-		{
-			for(k = (rows - 1) * cols + j; k >= i; k -=cols)
-			{
-			if((cur_game->cells[k] == -1) &&(cur_game->cells[i]!=-1)&&(i!=k))//if target cell is empty and the would be combined cells dont have the same value
-			{
-			cur_game->cells[k] = cur_game->cells[i];
-			cur_game->cells[i] = -1;
-			flag = 1;
-			}
-			if(((cols + k) < last_combined_row)&&(cols+k) <= (rows * cols))
-			{
-				if(cur_game->cells[cols + k] == cur_game->cells[k] && cur_game->cells[k]!= -1)
-				//if the current cell before target combined cell is the same value, then combine cells, change occurs
-				{
-				cur_game->cells[cols+k] *= 2; //combine scores
-				cur_game->cells[k] = -1;
-				last_combined_row = cols + k;
-				cur_game->score = (cur_game->score)+ cur_game->cells[cols + k];
-				flag = 1;
-						}
-					}
-				}
-			}
-		}
-	}
-		if(flag == 1)
-		{
-		return 1;
-		}
-		else
-		{
-		return 0;
-		}
+    //YOUR CODE STARTS HERE
+    int i, j, k;
+
+    int row = cur_game->rows;
+    int col = cur_game->cols;
+
+    int flag = 0;
+
+    for(j=0;j<col;j++){ //first col to the last col
+      int last_combined_row = row*col;
+      for(i=(row-1)*col+j;i>=0;i-=col){ //from the first column to last column
+        if(cur_game->cells[i] != -1){
+          for(k=(row-1)*col+j;k>=i;k-=col){
+            if((cur_game->cells[k] == -1)&&(cur_game->cells[i]!=-1)&&(i!=k)){
+              flag = 1;
+              cur_game->cells[k] = cur_game->cells[i];
+              cur_game->cells[i] = -1;
+            }
+            if((k+col < last_combined_row) && (k+col)<=(row*col)){
+              if(cur_game->cells[k+col] == cur_game->cells[k] && cur_game->cells[k]!= -1){
+                flag = 1;
+                cur_game->cells[k+col] *= 2;
+                cur_game->cells[k] = -1;
+                last_combined_row = k+col;
+                cur_game->score = cur_game->score + cur_game->cells[k+col];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (flag==1){
+      return 1;
+    }
+
+    else{
+      return 0;
+    }
+
 };
 
 int move_a(game * cur_game) //slide left
 {
- int i,j,k;
- int cols = cur_game->cols;
- int rows = cur_game->rows;
- int flag = 0;
+    //YOUR CODE STARTS HERE
+    int i, j, k;
 
- for(j = 0; j < rows; j++)
- {
-   int last_combined_col = -1;
-   for(i = (j - 1) * (cols); i <= j*cols - 1;i++) //i location of current cell with j being the targeted combined song
-   {
-	    if(cur_game->cells[i] != -1)//if the cell is empty then start check
-        {
-		      for(k =(j-1)* cols;k <= i; k++)
-		      {
-                  if((cur_game->cells[k] == -1) && (i!=k) &&(cur_game->cells[i] !=-1))//if target cell is empty and the would be combined cells dont have the same value
-                  {
-                      cur_game->cells[k] = cur_game->cells[i];
-                      cur_game->cells[i] = -1;
-                      flag = 1;
-                  }
-                  if(((k-1) >last_combined_col) &&((k-1) >= cols * (j - 1)))
-                  {
-                      if(cur_game->cells[k-1] == cur_game->cells[k] && cur_game->cells[k] !=-1)//if the current cell before target combined cell is the same value, then combine cells, change occurs
-                      {
-                          cur_game->cells[k-1] *= 2;
-                          cur_game->cells[k] = -1;
-                          last_combined_col = k - 1;
-                          cur_game->score =(cur_game->score) + cur_game->cells[k-1];
-                          flag = 1;
-                      }
-                  }
+    int row = cur_game->rows;
+    int col = cur_game->cols;
+
+    int flag = 0;
+
+    for(j=0;j<row;j++){ //first col to the last col
+      int last_combined_col = -1;
+      for(i=j*col;i<=j*col+col-1;i++){ //from the first column to last column
+        if(cur_game->cells[i] != -1){
+          for(k=j*col;k<=i;k++){
+            if((cur_game->cells[k] == -1)&&(cur_game->cells[i]!=-1)&&(i!=k)){
+              flag = 1;
+              cur_game->cells[k] = cur_game->cells[i];
+              cur_game->cells[i] = -1;
+            }
+            if((k-1 > last_combined_col) && (k-1)>=(j*col)){
+              if(cur_game->cells[k-1] == cur_game->cells[k] && cur_game->cells[k]!= -1){
+                flag = 1;
+                cur_game->cells[k-1] *= 2;
+                cur_game->cells[k] = -1;
+                last_combined_col = k-1;
+                cur_game->score = cur_game->score + cur_game->cells[k-1];
               }
+            }
           }
+        }
       }
-  }
-  if(flag == 1)
-  {
+    }
+
+    if (flag==1){
       return 1;
-  }
-  else
-  {
+    }
+
+    else{
       return 0;
-  }
-}
+    }
+};
 
 int move_d(game * cur_game){ //slide to the right
- int i,j,k;
- int rows = cur_game->rows;
- int cols = cur_game->cols;
- int flag = 0;
- for(j = 0; j < rows; j++)
- {
-	int last_combined_col = rows * cols;
-	for(i = j *cols -1; i >= cols * (j-1); i--)
-	{
-		if(cur_game->cells[i] != -1)
-		{
-			for(k = j*cols - 1; k >=i; k--)
-			{
-			if((cur_game->cells[k] == -1) && (cur_game->cells[i] != -1) && (i != k))//if target cell is empty and the would be combined cells dont have the same value
-			{
-			cur_game->cells[k] = cur_game->cells[i];
-			cur_game->cells[i] = -1;
-			flag = 1;
-			}
+    //YOUR CODE STARTS HERE
+    int i, j, k;
 
-			if(((k+1) < last_combined_col) &&((k + 1) <= j*cols-1))
-			{
-				if(cur_game->cells[k+1] == cur_game->cells[k] && cur_game->cells[k] != -1)//if the current cell before target combined cell is the same value, then combine cells, change occurs
-				{
-				cur_game->cells[k+1] *= 2;
-				cur_game->cells[k] = -1;
-				cur_game->score =(cur_game->score) + cur_game->cells[k+1];
-				flag = 1;
-							}
-						}
-					}
-				}
-			}
-		}
-	if(flag == 1)
-	{
-    	return 1;
-	}
-	else
-	{
-	return 0;
-	}
+    int row = cur_game->rows;
+    int col = cur_game->cols;
+
+    int flag = 0;
+
+    for(j=0;j<row;j++){ //last row to the first row
+      int last_combined_col = row*col;
+      for(i=j*col+col-1;i>=j*col;i--){ //from the first column to last column
+        if(cur_game->cells[i] != -1){
+          for(k=j*col+col-1;k>=i;k--){
+            if((cur_game->cells[k] == -1)&&(cur_game->cells[i]!=-1)&&(i!=k)){
+              flag = 1;
+              cur_game->cells[k] = cur_game->cells[i];
+              cur_game->cells[i] = -1;
+            }
+            if((k+1 < last_combined_col) && (k+1)<=(j*col+col-1)){
+              if(cur_game->cells[k+1] == cur_game->cells[k] && cur_game->cells[k]!= -1){
+                flag = 1;
+                cur_game->cells[k+1] *= 2;
+                cur_game->cells[k] = -1;
+                last_combined_col = k+1;
+                cur_game->score = cur_game->score + cur_game->cells[k+1];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (flag==1){
+      return 1;
+    }
+
+    else{
+      return 0;
+    }
 };
 
 int legal_move_check(game * cur_game)
@@ -272,13 +258,14 @@ int legal_move_check(game * cur_game)
     no legal moves if sliding in any direction will not cause the game to change.
 	Return 1 if there are possible legal moves, 0 if there are none.
  */
-{    int i, j, rows, cols;
+{
+    int i, j, rows, cols;
     rows = cur_game->rows;
     cols = cur_game->cols;
-    int *cells = cur_game->cells;//YOUR CODE STARTS HERE
+    int *cells = cur_game->cells;
 
     for (i = 0; i < rows; i++) {
-      for (j = 0; i < cols; j++) {
+      for (j = 0; j < cols; j++) {
             if(cells[i*cols + j] == -1) //there are still empty cells
             {
               return 1;
@@ -297,12 +284,11 @@ int legal_move_check(game * cur_game)
                 return 1;
               }
             }
+
        }
 	}
-  return 0;
+    return 0;
 }
-
-
 /*! code below is provided and should not be changed */
 
 void rand_new_tile(game * cur_game)
@@ -497,3 +483,4 @@ int process_turn(const char input_char, game* cur_game) //returns 1 if legal mov
     }
     return 1;
 }
+
