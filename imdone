@@ -1,0 +1,167 @@
+double gv_tuples(sp_tuples * mat_t,int row,int col)
+{
+ sp_tuples_node *head = mat_t->tuples_head;
+ while(head != NULL){ //if the value at row,col exists we return from linked list. If not, return 0;
+	if(head->row == row && head->col == col){
+		return head->value;
+	}
+	return 0;
+}
+}
+
+void set_tuples(sp_tuples * mat_t, int row, int col, double value)
+
+	{
+		sp_tuples_node *head = mat_t->tuples_head;
+		sp_tuples_node *prehead = NULL;
+		sp_tuples_node *temp;
+		while(head!=NULL) {//check if head is at the end of the list or at a value in the list
+			if(head->row==row && head->col==col) {
+				break;
+			}
+			prehead = head;
+			head=head->next;
+		}
+    if(value==0) {//if value==0, we delete that node if it exists
+    	if(head!=NULL) {
+    		temp = head->next;
+    		prehead->next = temp;
+    		while(head!=NULL) {
+    			free(head);
+    			head=head->next;
+    		}
+    	}
+    }
+    else
+        {
+    	if(head!=NULL) {//if value is anything else and a node exists at that row, col, we replace it with the new value, if not we create a new node at the end of the list
+    		head->value=value;
+    	}
+        else
+            {
+    		head->row = row;
+    		head->col = col;
+    		head->value = value;
+    		head->next = NULL;
+    	}
+    }
+    sort(mat_t->tuples_head);//we sort the list
+    return;
+}
+
+void save_tuples(char * file_name, sp_tuples * mat_t)
+{
+  FILE *f;
+  sort(mat_t->tuples_head);
+  sp_tuples_node * current = mat_t->tuples_head;
+  f = fopen(file_name,"w");
+  fprintf(f, "%d %d\n",(mat_t->m),(mat_t->n));
+
+  while(current != NULL){//prints in the file all the values from the mat_t file
+  	fprintf(f, "%d %d %lf", current->row,current->col,current->value);
+		current = current->next;
+  }
+}
+
+
+
+sp_tuples * add_tuples(sp_tuples * matA, sp_tuples * matB) {
+  if(matA->m != matB->m || matA->n != matB->n) {//checks if addition is valid
+    return NULL;
+  }
+  sp_tuples *matC = (sp_tuples*) malloc(sizeof(sp_tuples));//allocates space for the result matrix
+  int row,col;
+  row = matA->m;
+  col = matB->n;
+  matC->m = row;
+  matC->n = col;
+  matC->nz = 0;
+  matC->tuples_head = (sp_tuples_node*)calloc(1,sizeof(sp_tuples_node));//allocates space for the head tuple
+  matC->tuples_head->row = -1;
+  matC->tuples_head->col = -1;
+  sp_tuples_node *head = matA->tuples_head;
+  while(head!=NULL) {//adds from the first matrix
+  	set_tuples(matC, head->row, head->col, head->value);
+  	matC->nz++;
+  	head=head->next;
+  }
+  head = matB->tuples_head;
+  while(head!=NULL) {//adds from the second matrix
+  	if(gv_tuples(matC, head->row, head->col)!=0) {//if value already exists, the nz counter is not incremented
+  		set_tuples(matC, head->row, head->col, (gv_tuples(matC, head->row, head->col)+head->value));
+  	} else {
+  		matC->nz++;
+  		set_tuples(matC, head->row, head->col, head->value);
+  	}
+  }
+  head = matC->tuples_head;
+  matC->tuples_head = head->next;//last node is freed
+  free(head);
+  return matC;
+}
+
+
+
+sp_tuples * mult_tuples(sp_tuples * matA, sp_tuples * matB) {
+	if(matA->n != matB->m) {//checks if multiplication is possible
+		return NULL;
+	}
+  sp_tuples * matC = (sp_tuples*) malloc(sizeof(sp_tuples));//allocates the space for the matrix
+  int i,j,row,col,iA,jA,iB,jB;
+  row = matA->m;
+  col = matB->n;
+  matC->m = row;
+  matC->n = col;
+  matC->tuples_head = (sp_tuples_node*)calloc(1,sizeof(sp_tuples_node));//allocates the space for the head tuple
+  sp_tuples_node * headC = matC->tuples_head;
+  sp_tuples_node * headB = matB->tuples_head;
+  sp_tuples_node * headA = matA->tuples_head;
+  for(i = 0; i < row; i++) {//initializes the result matrix by setting all to 0
+  	for(j = 0; j < col; j++) {
+  		headC->row = i;
+  		headC->col = j;
+  		headC->value = 0;
+  		headC = headC->next;
+  	}
+  }
+  headC = matC->tuples_head;
+  while(headA != NULL) {//first checks through matrix A
+  	iA = headA->row;
+  	iB = headA->col;
+  	headB = matB->tuples_head;
+  	while(headB != NULL) {//goes through matrix B
+  		jA = headB->row;
+  		jB = headB->col;
+  		if(iA==jB) {
+  			headC->row = iB;//only does the computation if iA==jB
+  			headC->col = jA;
+  			headC->value = headC->value + (headA->value)*(headB->value);
+  			headC = headC->next;
+  		}
+  		headB = headB->next;
+  	}
+  	headA = headA->next;
+  }
+  headC = matC->tuples_head;//frees the memory
+  matC->tuples_head = headC->next;
+  headB = matB->tuples_head;
+  matB->tuples_head = headB->next;
+  headA = matA->tuples_head;
+  matA->tuples_head = headA->next;
+  free(headC);
+  free(headB);
+  free(headA);
+  return matC;
+}
+
+
+void destroy_tuples(sp_tuples * mat_t){
+	sp_tuples_node *head=mat_t->tuples_head,*prehead;	//Free every linked node first
+	while(head!=NULL)
+	{
+		prehead=head;//destroys tuples as we go
+		head=head->next;
+		free(prehead);
+	}
+	free(mat_t);	//free our main structure
+}
