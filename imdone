@@ -1,12 +1,132 @@
+#include "sparsemat.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+
+void sortlist(sp_tuples_node** head_ptr, int* countlength);
+
+sp_tuples * load_tuples(char* input_file)
+{
+  sp_tuples* start = (sp_tuples*)malloc(sizeof(sp_tuples));
+
+  FILE *file = fopen(input_file, "r");
+
+  int row, col;
+  double value = 0;
+  char endline;
+  fscanf(file, "%d %d %c", &row, &col, &endline);
+  start->m = row;
+  start->n = col;
+
+  int countnz = 0; // count non-zero entries as we loop
+
+  sp_tuples_node* head = (sp_tuples_node*)malloc(sizeof(sp_tuples_node));
+  while (value == 0){
+    fscanf(file, "%d %d %lf %c", &row, &col, &value, &endline);
+    if (value != 0){
+      start->tuples_head = head;
+      head->value = value;
+      head->row = row;
+      head->col = col;
+      head->next = NULL;
+      countnz++;
+    }
+  }
+  sp_tuples_node* tempPrevNode = head;
+
+  while (!feof(file)){
+    fscanf(file, "%d %d %lf %c", &row, &col, &value, &endline);
+    if (value != 0){
+      sp_tuples_node* tempnode = (sp_tuples_node*)malloc(sizeof(sp_tuples_node));
+      if (head->next == NULL){
+        head->next = tempnode;
+      }
+      tempnode->value = value;
+      tempnode->row = row;
+      tempnode->col = col;
+      tempPrevNode->next = tempnode;
+      tempnode->next = NULL;
+      tempPrevNode = tempnode;
+      countnz++;
+    }
+  }
+
+  fclose(file);
+
+  //order the linked list
+  sp_tuples_node** head_ptr = &(start->tuples_head);
+  sortlist(head_ptr, &countnz);
+  start->nz = countnz;
+
+
+
+  return start;
+}
+
+void sortlist(sp_tuples_node** head_ptr, int* countlength){
+
+  int i, j, cur_row, cur_col, compare_row, compare_col;
+  sp_tuples_node* compare_node = *head_ptr;
+  sp_tuples_node* prev_node = *head_ptr;
+  sp_tuples_node* cur_node = prev_node->next;
+  sp_tuples_node* next_node = cur_node->next;
+
+  for (i=1; i< *countlength; i++){
+    cur_row = cur_node->row;
+    cur_col = cur_node->col;
+    compare_node = *head_ptr;
+    prev_node->next = next_node;
+
+    for (j=0; j<i; j++){
+      compare_row = compare_node->row;
+      compare_col = compare_node->col;
+
+      if (cur_row < compare_row){
+        sp_tuples_node* temp = compare_node;
+        compare_node = cur_node;
+        cur_node->next = temp;
+        break;
+      }
+
+      if (cur_row == compare_row && cur_col < compare_col){
+        sp_tuples_node* temp = compare_node;
+        compare_node = cur_node;
+        cur_node->next = temp;
+        break;
+      }
+
+      if (cur_row == compare_row && cur_col == compare_col){
+        sp_tuples_node* temp = compare_node;
+        compare_node = cur_node;
+        cur_node->next = temp->next;
+        free(temp);  //removed a node, need to change the length of the list
+        countlength--;
+        break;
+      }
+
+      compare_node = compare_node->next;
+    }
+    cur_node = next_node;
+    prev_node = cur_node;
+    next_node = cur_node->next;
+    //double check to make sure it doesn't go past NULL
+  }
+
+}
+
 double gv_tuples(sp_tuples * mat_t,int row,int col)
 {
- sp_tuples_node *head = mat_t->tuples_head;
- while(head != NULL){ //if the value at row,col exists we return from linked list. If not, return 0;
-	if(head->row == row && head->col == col){
-		return head->value;
-	}
-	return 0;
-}
+  sp_tuples_node *head = mat_t->tuples_head;
+  do{ //if the value at row,col exists we return from linked list. If not, return 0;
+	   if(head->row == row && head->col == col){
+       return head->value;
+     }
+     head = head->next;
+  }while(head != NULL);
+
+  return 0;
 }
 
 void set_tuples(sp_tuples * mat_t, int row, int col, double value)
@@ -45,14 +165,12 @@ void set_tuples(sp_tuples * mat_t, int row, int col, double value)
     		head->next = NULL;
     	}
     }
-    sort(mat_t->tuples_head);//we sort the list
-    return;
+    //sort(mat_t->tuples_head); //we sort the list
 }
 
 void save_tuples(char * file_name, sp_tuples * mat_t)
 {
   FILE *f;
-  sort(mat_t->tuples_head);
   sp_tuples_node * current = mat_t->tuples_head;
   f = fopen(file_name,"w");
   fprintf(f, "%d %d\n",(mat_t->m),(mat_t->n));
